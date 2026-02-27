@@ -1,0 +1,26 @@
+// ******************************************
+// File name - arrays_in_class
+// Owner - Priyanshu Singh (priyanshus@pulsewavesemi.com)
+// Date - 26 September 2025
+
+// Description - This code demonstrate that how can you create dynamic array and print array using classes.
+
+// *************************************************
+
+class MyClass;
+    // Dynamic array
+    int data[];
+
+    // Constructor with array size as input
+    function new(int size);
+        // Allocate the dynamic array with given size
+        data = new[size];
+    endfunction
+
+    // Function to display array elements
+    function void display();
+        for (int i = 0; i < data.size(); i++) begin
+            $display("data[%0d] = %0d", i, data[i]);
+        end
+    endfunction
+endclass
