@@ -1,0 +1,255 @@
+// ******************************************************
+
+// File name - class_basics_practice.sv
+// Owner - Priyanshu Singh (priyanshus@pulsewavesemi.com)
+// Date - 26 September, 2025
+
+// Description - This code shows how SystemVerilog classes work. The base class myPacket has basic packet fields and a function to display them. The networkPkt class inherits from it and adds extra fields for network packets. It also has its own display function that shows both base and new fields. The testbench creates a networkPkt object and prints all its values, showing how inheritance and method overriding work.
+
+// *********************************************************
+
+
+
+
+class myPacket;
+	bit [2:0]  header;
+	bit        encode;
+	bit [2:0]  mode;
+	bit [7:0]  data;
+	bit        stop;
+
+	function new (bit [2:0] header = 3'h1, bit [2:0] mode = 5);
+		this.header = header;
+		this.encode = 0;
+		this.mode   = mode;
+		this.stop   = 1;
+	endfunction
+
+	function display ();
+      
+		$display ("Header = 0x%0h, Encode = %0b, Mode = 0x%0h, Stop = %0b",
+		           this.header, this.encode, this.mode, this.stop);
+	endfunction
+endclass
+
+
+class networkPkt extends myPacket;
+	bit        parity;
+	bit [1:0]  crc;
+
+	function new ();
+//       super.new();
+		this.parity = 1;
+		this.crc = 3;
+	endfunction
+
+	function display ();
+      super.header= 3'h2;
+      super.display();
+		$display ("Parity = %0b, CRC = 0x%0h", this.parity, this.crc);
+	endfunction
+endclass
+
+
+module tb_top;
+// 	myPacket pkt0, pkt1, pkt3;
+    networkPkt netpkt;
+
+	initial begin
+//       pkt0 = new (3'h3, 2'h2);
+// 		pkt0.display ();
+
+// 		pkt1 = new ();
+// 		pkt1.display ();
+        
+//       pkt3 = pkt1;
+//       pkt3.display();
+      
+      netpkt = new();
+     
+      netpkt.display();
+      
+      
+	end
+endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+// ***********************************************************************
+
+// File name - class Inheritance and casting example
+// Owner - Priyanshu Singh (priyanshus@pulsewavesemi.com)
+// Date - 26 September 2025
+
+// Description - This SystemVerilog code shows how inheritance and object-oriented programming work. It has a Base class with a show() method and a Child class that inherits from it, adds a property, and overrides show(). The testbench demonstrates creating objects, calling methods, upcasting a child to a base type, and safely accessing child properties using $cast. It helps understand method overriding, upcasting, and downcasting in SystemVerilog.
+
+// ************************************************************************
+
+
+
+
+
+
+// Base class
+class Base;
+   // Base class has no property here
+   function void show();
+      $display("This is Base class.");
+   endfunction
+endclass
+
+// Child class inherits from Base
+class Child extends Base;
+   // Property specific to Child
+   int child_property;
+
+   // Constructor to initialize child_property
+   function new(int val);
+      child_property = val;
+   endfunction
+
+   function void show();
+      $display("This is Child class with property: %0d", child_property);
+   endfunction
+endclass
+
+
+module tb;
+   Base base_inst;
+   Child child_inst;
+
+   initial begin
+      // Create instances
+      base_inst = new();
+      child_inst = new(42);
+
+      // Accessing base class method through base_inst
+      base_inst.show();  // Works fine
+
+      // Accessing child class property through child_inst
+      child_inst.show(); // Works fine and shows child_property
+
+      // Now trying to access child property via base_inst
+      // This will cause an error because base_inst doesn't know about child_property
+      // Uncommenting the next line will result in a compilation error
+      // $display("Accessing child property: %0d", base_inst.child_property);
+
+      // Even if base_inst actually points to a Child object, it can't access child_property directly
+      base_inst = child_inst; // Upcasting Child to Base
+
+      base_inst.show(); // Calls Base's show(), unless virtual mechanism is used
+      
+      // Accessing child property requires casting
+      if ($cast(child_inst, base_inst)) begin
+         $display("Accessing child property after casting: %0d", child_inst.child_property);
+      end else begin
+         $display("Casting failed");
+      end
+
+      $finish;
+   end
+endmodule
+
+
+
+
+
+
+
+
+
+// ******************************************************************
+// File name - class_inheritance
+// Owner - Priyanshu Singh ( priyanshus@pulsewavesemi.com)
+// Date - 26 September 2025
+
+// Description - This code demonstate that how inheritance work in system verilog.
+
+// *************************************************************************
+
+
+
+
+
+
+class Packet;
+   int addr;
+
+   function new (int addr);
+      this.addr = addr;
+   endfunction
+
+	function display ();
+		$display ("[Base] addr=0x%0h", addr);
+	endfunction
+endclass
+
+
+// The child class inherits all variables and methods from the parent class
+class ExtPacket extends Packet;
+
+	
+	int data;
+
+  function new (int addr, data);
+      super.new (addr); 	// Calls 'new' method of parent class
+      this.data = data;
+   endfunction
+
+	function display ();
+		$display ("[Child] addr=0x%0h data=0x%0h", addr, data);
+	endfunction
+endclass
+
+module tb;
+// 	Packet      bc; 	
+	ExtPacket   sc; 	
+
+	initial begin
+// 		bc = new (32'hface_cafe);
+// 		bc.display ();
+
+        sc = new (32'hfeed_feed, 32'h1234_5678);
+		sc.display();
+	end
+endmodule
+
+
+
+
+/ *************************************************
+// File name - Parameterized class
+// Owner - Priyanshu Singh (priyanshus@pulsewavesemi.com)
+// Date - 26 Sepetember 2025
+  
+// Description - This code shows how to use parameters in a class with # in SystemVerilog. You can give different values when creating objects, which makes the class flexible and reusable without changing its code.
+  
+// ******************************************************** 
+  
+class base #(int size =8) ;
+  
+  
+  function void display();  
+    int arr[] = new[size];
+    $display("size of aarray = %d", arr.size());
+  endfunction;
+endclass
+
+
+
+module tb;
+  base #(.size(7)) b;
+  initial begin
+    b = new();
+    b.display();
+  end
+endmodule
